@@ -1,13 +1,13 @@
 package com.example.gamecards.controller;
 
 import com.example.gamecards.DTO.UserDTO;
-import com.example.gamecards.models.User;
+import com.example.gamecards.services.CustomUserDetails;
 import com.example.gamecards.services.UserService;
-import com.example.gamecards.services.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.CachingUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +17,10 @@ import java.security.Principal;
 @RequestMapping("/api/users")
 public class UserController
 {
-    @Autowired
-    private UserDetailsService userDetailsService;
+
+    @Qualifier("customUserDetailsService")
+    private CachingUserDetailsService userDetailsService;
+
     private UserService userService;
 
     @GetMapping("/home")
@@ -35,12 +37,7 @@ public class UserController
         model.addAttribute("user",userDTO);
         return "login";
     }
-    @GetMapping("/register")
-    public ResponseEntity<?> registerUser(Model model, UserDTO userDTO)
-    {
-        model.addAttribute("user",userDTO);
-        return ResponseEntity.ok("User registered succesfully");
-    }
+
     @PostMapping("/register")
     public ResponseEntity<?> registerAndSaveUser(@ModelAttribute("user")UserDTO userDTO)
     {

@@ -26,6 +26,7 @@ public class User
 
     private String fullname;
 
+    public User(){super();}
     public User(String email, String password, String fullname)
     {
         super();
