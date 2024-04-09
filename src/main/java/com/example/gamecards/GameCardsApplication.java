@@ -1,16 +1,13 @@
 package com.example.gamecards;
 
-import com.example.gamecards.services.CustomUserDetails;
+import com.example.gamecards.models.User;
+import com.example.gamecards.repositories.UserRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Arrays;
-import java.util.Collection;
 
 @SpringBootApplication
 public class GameCardsApplication {
-
+    private static UserRepository userRepository;
     public static void main(String[] args)
     {
 
