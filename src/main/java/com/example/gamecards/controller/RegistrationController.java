@@ -1,41 +1,40 @@
 package com.example.gamecards.controller;
 
 import com.example.gamecards.DTO.RegistrationRequest;
-import com.example.gamecards.models.User;
 import com.example.gamecards.repositories.UserRepository;
+import com.example.gamecards.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/api")
 @CrossOrigin(origins = "http://localhost:3000")
-public class RegistrationController
-{
-    @Autowired
-    private  UserRepository userRepository;
+public class RegistrationController {
 
     @Autowired
-    private  PasswordEncoder passwordEncoder;
+    private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<Object> register(@RequestBody RegistrationRequest request)
-    {
-        User user = new User();
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        User req = userRepository.save(user);
-        if(req.getUserId() > 0)
-            return ResponseEntity.ok("User registered successfully");
-        return ResponseEntity.badRequest().body("User registration failed");
+    public ResponseEntity<?> register(@RequestBody RegistrationRequest request) {
+        String result = userService.registerUser(request);
+        if (result.equals("User registered successfully")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
     }
+
     @GetMapping("/users/get/all")
-    public ResponseEntity<Object> getAllUsers()
-    {
+    public ResponseEntity<Object> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    @GetMapping("/home")
+    public ResponseEntity<String> home() {
+        return ResponseEntity.ok("Welcome to the Game Cards App");
     }
 }

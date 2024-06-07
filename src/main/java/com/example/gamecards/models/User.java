@@ -6,71 +6,45 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
+@Getter
 @Entity
 @ToString
 @AllArgsConstructor
 @Builder
 @Table(name = "`User`")
 @NoArgsConstructor
-public class User implements UserDetails
+public class User
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @Setter
     private String firstName;
+
+    @Setter
     private String lastName;
+
+    @Setter
     private String email;
+
+    @Setter
     private String password;
 
-    private String userRoles;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
-    private Boolean locked;
-    private Boolean enabled;
+   private boolean enabled;
 
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities()
+    public void setRoles(HashSet<Role> roles)
     {
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_USER");
-        return Collections.singletonList(authority);
+        this.roles = roles;
     }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-
-
 }
