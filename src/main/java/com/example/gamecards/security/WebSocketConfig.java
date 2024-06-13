@@ -1,4 +1,4 @@
-package com.example.gamecards.config;
+package com.example.gamecards.security;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

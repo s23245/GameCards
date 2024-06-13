@@ -29,4 +29,6 @@ public class Hero {
     @ManyToOne
     @JoinColumn(name = "lobby_id")
     private Lobby lobby;
+
+    private String imageUrl;
 }

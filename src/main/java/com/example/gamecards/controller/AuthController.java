@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.bind.annotation.*;
 import com.example.gamecards.services.CustomUserDetailService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -42,9 +44,11 @@ public class AuthController {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.set("Authorization", "Bearer " + token);
 
-            return ResponseEntity.ok().headers(responseHeaders).body("Login successful");
+            // Return the token in the response body as well
+            return ResponseEntity.ok().headers(responseHeaders).body(Map.of("token", token));
         } catch (Exception e) {
             return ResponseEntity.status(401).body("Login failed: " + e.getMessage());
         }
     }
+
 }

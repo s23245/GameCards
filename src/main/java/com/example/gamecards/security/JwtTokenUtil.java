@@ -26,6 +26,7 @@ public class JwtTokenUtil {
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        System.out.println("JWT Key Initialized: " + this.key);
     }
 
     public String generateToken(String email) {
@@ -38,8 +39,14 @@ public class JwtTokenUtil {
     }
 
     public String getEmailFromToken(String token) {
-        Claims claims = getClaimsFromToken(token);
-        return claims.getSubject();
+        try {
+            Claims claims = getClaimsFromToken(token);
+            System.out.println("Claims extracted: " + claims);
+            return claims.getSubject();
+        } catch (Exception e) {
+            System.out.println("Error extracting email from token: " + e.getMessage());
+            return null;
+        }
     }
 
     public boolean validateToken(String token) {
@@ -47,6 +54,7 @@ public class JwtTokenUtil {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("Token validation error: " + e.getMessage());
             return false;
         }
     }
