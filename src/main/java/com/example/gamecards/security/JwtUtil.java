@@ -1,19 +1,19 @@
 package com.example.gamecards.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 
 @Component
-public class JwtTokenUtil {
+public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secret;
@@ -26,7 +26,6 @@ public class JwtTokenUtil {
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        System.out.println("JWT Key Initialized: " + this.key);
     }
 
     public String generateToken(String email) {
@@ -38,25 +37,13 @@ public class JwtTokenUtil {
                 .compact();
     }
 
-    public String getEmailFromToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            System.out.println("Claims extracted: " + claims);
-            return claims.getSubject();
-        } catch (Exception e) {
-            System.out.println("Error extracting email from token: " + e.getMessage());
-            return null;
-        }
+    public String extractUsername(String token) {
+        return getClaimsFromToken(token).getSubject();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            System.out.println("Token validation error: " + e.getMessage());
-            return false;
-        }
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
     private Claims getClaimsFromToken(String token) {
@@ -65,5 +52,10 @@ public class JwtTokenUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    private boolean isTokenExpired(String token) {
+        final Date expiration = getClaimsFromToken(token).getExpiration();
+        return expiration.before(new Date());
     }
 }

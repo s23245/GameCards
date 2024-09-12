@@ -27,6 +27,19 @@ public class UserService
     @Lazy
     private PasswordEncoder passwordEncoder;
 
+    public User updateUsername(String email, String newUsername) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        user.setUsername(newUsername);
+        return userRepository.save(user);
+    }
+
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
 
     public String registerUser(RegistrationRequest request)

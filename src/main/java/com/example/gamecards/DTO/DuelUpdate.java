@@ -1,7 +1,11 @@
 package com.example.gamecards.DTO;
 
 import com.example.gamecards.models.Hero;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class DuelUpdate {
     private Hero hero1;
     private Hero hero2;
@@ -11,11 +15,4 @@ public class DuelUpdate {
         this.hero2 = hero2;
     }
 
-    public Hero getHero1() {
-        return hero1;
-    }
-
-    public Hero getHero2() {
-        return hero2;
-    }
 }

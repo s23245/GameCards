@@ -33,6 +33,9 @@ public class User
     @Setter
     private String password;
 
+    @Setter
+    private String username;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",

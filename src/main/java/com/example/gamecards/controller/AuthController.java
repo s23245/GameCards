@@ -1,7 +1,7 @@
 package com.example.gamecards.controller;
 
 import com.example.gamecards.DTO.LoginRequest;
-import com.example.gamecards.security.JwtTokenUtil;
+import com.example.gamecards.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -19,14 +19,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private JwtUtil jwtTokenUtil;
 
     @Autowired
     private CustomUserDetailService customUserDetailService;
@@ -44,8 +44,7 @@ public class AuthController {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.set("Authorization", "Bearer " + token);
 
-            // Return the token in the response body as well
-            return ResponseEntity.ok().headers(responseHeaders).body(Map.of("token", token));
+            return ResponseEntity.ok().headers(responseHeaders).body(Map.of("token", token,"username", customUserDetailService.getUserByEmail(loginRequest.getEmail()).getUsername()));
         } catch (Exception e) {
             return ResponseEntity.status(401).body("Login failed: " + e.getMessage());
         }
