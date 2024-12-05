@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 
 @Service
 public class UserService
@@ -39,6 +40,11 @@ public class UserService
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public Optional<User> findByUsername(String username)
+    {
+        return userRepository.findByUsername(username);
     }
 
 

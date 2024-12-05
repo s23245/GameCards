@@ -7,8 +7,11 @@ import com.example.gamecards.repositories.GameSessionRepository;
 import com.example.gamecards.repositories.HeroRepository;
 import com.example.gamecards.repositories.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +19,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class GameService {
-
+public class GameService
+{
+    private static final Logger logger = LoggerFactory.getLogger(GameService.class);
     @Autowired
     private GameSessionRepository gameSessionRepository;
 
@@ -43,16 +47,16 @@ public class GameService {
                 .orElseThrow(() -> new IllegalArgumentException("Game session not found"));
     }
 
-    public GameSession joinGameSession(UUID gameId, String usernameJson) {
+    public GameSession joinGameSession(UUID gameId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<GameSession> gameSessionOptional = gameSessionRepository.findById(gameId);
         if (gameSessionOptional.isPresent()) {
             GameSession gameSession = gameSessionOptional.get();
-            if (gameSession.addUser(usernameJson)) {
-                System.out.println("User added to session: " + usernameJson);
-                System.out.println("Current users in session: " + gameSession.getUsers());
+            if (gameSession.addUser(username)) {
+                logger.info("User added to session: {}", username);
                 return gameSessionRepository.save(gameSession);
             } else {
-                System.out.println("User already in the game session or game session is full: " + usernameJson);
+                logger.warn("User already in the game session or game session is full: {}", username);
                 throw new IllegalStateException("User already in the game session or game session is full");
             }
         } else {
@@ -60,18 +64,19 @@ public class GameService {
         }
     }
 
+    public GameSession searchGame() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-    public GameSession searchGame(String usernameJson) {
         List<GameSession> activeGames = gameSessionRepository.findAll();
         for (GameSession gameSession : activeGames) {
-            if (gameSession.addUser(usernameJson)) {
-                System.out.println("User added to existing session: " + gameSession.getId());
+            if (gameSession.addUser(username)) {
+                logger.info("User added to existing session: {}", gameSession.getId());
                 return gameSessionRepository.save(gameSession);
             }
         }
         GameSession newGameSession = createGameSession();
-        newGameSession.addUser(usernameJson);
-        System.out.println("Created new game session: " + newGameSession.getId());
+        newGameSession.addUser(username);
+        logger.info("Created new game session: {}", newGameSession.getId());
         return gameSessionRepository.save(newGameSession);
     }
 
@@ -79,11 +84,13 @@ public class GameService {
         GameSession gameSession = gameSessionRepository.findById(gameId)
                 .orElseThrow(() -> new IllegalArgumentException("Game session not found"));
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email);
-        String usernameJson = "{\"username\":\"" + user.getUsername() + "\"}";
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userRepository.findByUsername(username);
 
-        gameSession.selectHero(usernameJson, heroId);
+        if(user.isEmpty())
+            throw new UsernameNotFoundException("User nor found");
+
+        gameSession.selectHero(user.get().getUsername(), heroId);
 
         gameSessionRepository.save(gameSession);
         return gameSession;

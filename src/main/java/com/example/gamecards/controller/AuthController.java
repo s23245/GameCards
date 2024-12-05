@@ -35,16 +35,16 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         try {
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             Authentication authentication = authenticationManager.authenticate(authToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            final UserDetails userDetails = customUserDetailService.loadUserByUsername(loginRequest.getEmail());
+            final UserDetails userDetails = customUserDetailService.loadUserByUsername(loginRequest.getUsername());
             final String token = jwtTokenUtil.generateToken(userDetails.getUsername());
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.set("Authorization", "Bearer " + token);
 
-            return ResponseEntity.ok().headers(responseHeaders).body(Map.of("token", token,"username", customUserDetailService.getUserByEmail(loginRequest.getEmail()).getUsername()));
+            return ResponseEntity.ok().headers(responseHeaders).body(Map.of("token", token,"username", customUserDetailService.loadUserByUsername(loginRequest.getUsername()).getUsername()));
         } catch (Exception e) {
             return ResponseEntity.status(401).body("Login failed: " + e.getMessage());
         }

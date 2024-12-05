@@ -5,9 +5,11 @@ import com.example.gamecards.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user")
@@ -18,8 +20,13 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/current")
-    public User getCurrentUser(Authentication authentication) {
-        return userService.findByEmail(authentication.getName());
+    public User getCurrentUser(Authentication authentication)
+    {
+        Optional<User> user = userService.findByUsername(authentication.getName());
+
+        if(user.isEmpty())
+            throw new UsernameNotFoundException("User not found");
+        return user.get();
     }
 
     @PutMapping("/username")

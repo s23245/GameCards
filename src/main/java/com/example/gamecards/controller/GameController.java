@@ -17,14 +17,14 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/search")
-    public GameSession searchGame(@RequestBody String usernameJson) {
-        return gameService.searchGame(usernameJson);
+    public GameSession searchGame() {
+        return gameService.searchGame();
     }
 
     @PostMapping("/joinGame")
-    public ResponseEntity<GameSession> joinGame(@RequestParam UUID gameId, @RequestBody String usernameJson) {
+    public ResponseEntity<GameSession> joinGame(@RequestParam UUID gameId) {
         try {
-            GameSession gameSession = gameService.joinGameSession(gameId, usernameJson);
+            GameSession gameSession = gameService.joinGameSession(gameId);
             return ResponseEntity.ok(gameSession);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

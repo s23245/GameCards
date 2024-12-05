@@ -1,54 +1,73 @@
 package com.example.gamecards.controller;
 
+import com.example.gamecards.DTO.CardSelectionRequest;
 import com.example.gamecards.DTO.StartDuelRequest;
 import com.example.gamecards.DTO.DuelUpdate;
+import com.example.gamecards.models.GameSession;
+import com.example.gamecards.repositories.GameSessionRepository;
 import com.example.gamecards.services.DuelService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/duel")
-public class DuelController {
+public class DuelController
+{
+    private Map<UUID, Set<String>> connectedPlayers = new ConcurrentHashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(DuelController.class);
+
 
     @Autowired
     private DuelService duelService;
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private GameSessionRepository gameSessionRepository;
 
+    @MessageMapping("/player-ready")
+    public void playerReady(Map<String, String> payload) {
+        String gameIdStr = payload.get("gameId");
+        String username = payload.get("username");
+        UUID gameId = UUID.fromString(gameIdStr);
+
+        duelService.addConnectedPlayer(gameId, username);
+        logger.info("Player {} is ready for game {}", username, gameId);
+
+        GameSession gameSession = gameSessionRepository.findById(gameId)
+                .orElseThrow(() -> new IllegalArgumentException("Game session not found"));
+
+        if (duelService.getConnectedPlayers(gameId).containsAll(gameSession.getUsers())) {
+            // All players are ready, start the game loop
+            duelService.startGameSession(gameId);
+        }
+    }
     @PostMapping("/start")
-    public ResponseEntity<String> startDuel(@RequestBody StartDuelRequest request) {
-        logger.info("Received startDuel request with gameId: {}", request.getGameId());
-        try {
-            duelService.startDuel(request.getGameId());
-            messagingTemplate.convertAndSend("/topic/duel-progress/" + request.getGameId(), "DUEL_STARTED");
-            logger.info("Duel started successfully for gameId: {}", request.getGameId());
-            return ResponseEntity.ok("Duel started successfully");
-        } catch (Exception e) {
-            logger.error("Duel start failed for gameId: {}: {}", request.getGameId(), e.getMessage(), e);
-            return ResponseEntity.status(500).body("Duel start failed: " + e.getMessage());
-        }
+    public ResponseEntity<String> startDuel(@RequestBody StartDuelRequest request, @RequestHeader("Authorization") String token) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        duelService.startGameSession(request.getGameId());
+        return ResponseEntity.ok("Duel started successfully");
     }
 
-    @GetMapping("/{gameId}")
-    public ResponseEntity<DuelUpdate> getDuelData(@PathVariable UUID gameId) {
-        logger.info("Received getDuelData request for gameId: {}", gameId);
-        try {
-            DuelUpdate duelUpdate = duelService.getDuelData(gameId);
-            logger.info("Duel data retrieved successfully for gameId: {}", gameId);
-            return ResponseEntity.ok(duelUpdate);
-        } catch (Exception e) {
-            logger.error("Failed to get duel data for gameId: {}: {}", gameId, e.getMessage(), e);
-            return ResponseEntity.status(500).body(null);
-        }
+    @PostMapping("/choose-card")
+    public ResponseEntity<Map<String, Object>> chooseCard(@RequestBody CardSelectionRequest request) {
+        Map<String, Object> response = duelService.applyChosenCard(request.getCardId(), request.getGameId());
+        return ResponseEntity.ok(response);
     }
+
+
+
 }

@@ -31,8 +31,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-
+            throws ServletException, IOException
+    {
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/ws"))
+        {
+            // Skip JWT filter for WebSocket handshake requests
+            chain.doFilter(request, response);
+            return;
+        }
         final String authorizationHeader = request.getHeader("Authorization");
 
         String username = null;

@@ -1,18 +1,28 @@
 package com.example.gamecards.models;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
+@Data
 @Setter
 @Getter
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "players")
 public class Player
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String username;
+    private int hp = 10; // Starting player HP
+
+    @Transient
     private Hero hero;
 
-    public Player(String username, Hero hero) {
-        this.username = username;
-        this.hero = hero;
-    }
+    @Transient
+    private Card chosenCard;
 
 }

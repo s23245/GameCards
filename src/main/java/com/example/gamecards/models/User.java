@@ -34,6 +34,7 @@ public class User
     private String password;
 
     @Setter
+    @Column(name = "username")
     private String username;
 
     @ManyToMany(fetch = FetchType.EAGER)

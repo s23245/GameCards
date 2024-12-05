@@ -1,7 +1,5 @@
 package com.example.gamecards.models;
 
-import com.example.gamecards.models.Hero;
-import com.example.gamecards.models.Lobby;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,10 +11,6 @@ public class Duel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "lobby_id")
-    private Lobby lobby;
 
     @ManyToOne
     @JoinColumn(name = "hero1_id")
